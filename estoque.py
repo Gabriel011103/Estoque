@@ -1,113 +1,130 @@
-#ESTOQUE SIMPLES
-#TRATAR EXCESSÕES COMO, SÓ REMOVER UM ITEM EXISTENTE
-#NOTIFICAR QUANDO ALGUM DOS ITENS ESTIVER EM ESTOQUE CRITICO
-#DEPOIS DE FEITO IMPLEMENTAR CORES DESTACANDO A IMPORTANCIA DE CADA ITEM.
-#ADICIONAR CORES AO STATUS, DISPONIVEL, CRITICO, INDISPONIVEL.
 import locale
 import pickle
+
+# Define o local para formatação de números e moedas
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
+# Lista que armazenará os itens do estoque
 estoque = []
 
-#uso a função do pickle para guardar os dados da lista
+# Função para salvar os dados do estoque em um arquivo usando pickle
 def salvarEstoque(estoque):
     with open('estoque.pkl', 'wb') as f:
         pickle.dump(estoque, f)
-    print("REGISTROS SALVOS COM SUCESSO !")
+    print("REGISTROS SALVOS COM SUCESSO!")
 
-#função para carregar o estoque
+# Função para carregar os dados do estoque de um arquivo
+# Se o arquivo não existir, retorna uma lista vazia
 def carregarEstoque():
     try:
         with open('estoque.pkl', 'rb') as f:
             estoque = pickle.load(f)
-        print ("Estoque carregado com sucesso !")
+        print("Estoque carregado com sucesso!")
         return estoque
     except FileNotFoundError:
-        print("Arquivo de estoque não encontrado. Iniciando um novo estoque")
+        print("Arquivo de estoque não encontrado. Iniciando um novo estoque.")
         return []
 
-#ESSA FUNÇÃO PRINTA O ESTOQUE E TRATA A EXCESSÃO(CASO O ESTOQUE ESTEJA VAZIO ELA MOSTARA MENSAGEM) OPCAO 1
+# Função para exibir os itens do estoque
 def mostrarEstoque(estoque):
     if not estoque:
-        print ("Não existe nenhum item no estoque ainda.")
+        print("Não existe nenhum item no estoque ainda.")
         return
-#PARA UMA MELHOR EXPERIÊNCIA DO USUÁRIO E PARA UMA MELHOR REFERÊNCIAÇÃO, USO A FUNÇÃO ENUMERATE PARA NUMERAR OS ITENS 
+    
+    # Exibe os itens numerados
     for n, item in enumerate(estoque, 1):
-        print(f"{n}. {item['ITEM']} - {item['QUANTIDADE']} - R$: {item['VALOR_POR_UNIDADE']}")
+        print(f"{n}. {item['ITEM']} - {item['QUANTIDADE']} unidades - R$: {item['VALOR_POR_UNIDADE']}")
 
-#A FUNÇÃO ABAIXO PEDE ENTRADA DE DADOS DO USUÁRIO E CRIA DICIONÁRIO PARA SEREM ADICIONADOS A LISTA (ESTOQUE) OPCAO 2
+# Função para adicionar um item ao estoque
 def adicionarItem(estoque):
-    nome = input("ME INFORME O NOME DO ITEM.")
-    quantidade = int(locale.atof(input("QUANTAS UNIDADES DEVEM SER ADICIONADAS? ")))
-    valorUnidade = locale.atof(input("QUAL VALOR POR UNIDADE? "))
-    novoItem = {"ITEM": nome,
-    "QUANTIDADE": quantidade,
-    "VALOR_POR_UNIDADE": valorUnidade}
+    nome = input("Informe o nome do item: ")
+    quantidade = int(locale.atof(input("Quantas unidades devem ser adicionadas? ")))
+    valorUnidade = locale.atof(input("Qual o valor por unidade? "))
+    
+    novoItem = {
+        "ITEM": nome,
+        "QUANTIDADE": quantidade,
+        "VALOR_POR_UNIDADE": valorUnidade
+    }
+    
     estoque.append(novoItem)
-#NESSA FUNÇÃO SUBTRAI O ESTOQUE DO ITEM COM BASE NA ENTRADA DO INPUT DO USUÁRIO OPCAO 3   
-def saidaItem(estoque):
-    print(estoque)
-    if not estoque:
-        print ("ESTOQUE VAZIO.")
-    else:
-        itemSaida = input("QUAL O PRODUTO QUE DESEJA ALTERAR? ")
-        saidaQuantidade = int (input("QUANTOS ITENS DEVEM SER DADO BAIXAS?"))
-    
-        for saida in estoque:
-            if saida["ITEM"].lower() == itemSaida and saida["QUANTIDADE"].lower() == saidaQuantidade.lower():
-                saida["QUANTIDADE"] -= saidaQuantidade
-            print (f"O {itemSaida} FOI ALTERADO COM SUCESSO !")
-    
-#NESSA FUNÇÃO O ITEM É REMOVIDO TENDO O REFERENCIAL O INPUT DO USUARIO OPCAO 4
-def removerItem(estoque):
-    print(estoque)
-    if not estoque:
-        print ("ESTOQUE VAZIO.")
-    else:
-        qualRemover = input("Qual dos intens acima você deseja remover? ")
-    
-        for remover in estoque:
-            if remover["ITEM"].lower() == qualRemover.lower():
-                estoque.remove(remover)
-                print(f"tarefa 'qualRemover' removido com sucesso !!")
-                return
-            print ("ITEM NÃO ENCONTRADO, POR FAVOR TENTE NOVAMENTE.")
-#ESSA FUNÇÃO SOMA TODO O VALOR DO ESTOQUE OPCAO 5
-def somarEstoque(estoque):
-    print(estoque)
-    soma_total = sum (item["VALOR_POR_UNIDADE"] for item in estoque)
-    print (f"O valor total do seu estoque é de R$: {soma_total}")
 
+# Função para remover quantidade de um item no estoque
+def saidaItem(estoque):
+    if not estoque:
+        print("ESTOQUE VAZIO.")
+        return
+    
+    itemSaida = input("Qual o produto que deseja alterar? ").lower()
+    saidaQuantidade = int(input("Quantos itens devem ser dados baixa? "))
+    
+    for item in estoque:
+        if item["ITEM"].lower() == itemSaida:
+            if item["QUANTIDADE"] >= saidaQuantidade:
+                item["QUANTIDADE"] -= saidaQuantidade
+                print(f"{saidaQuantidade} unidades de {itemSaida} foram removidas do estoque!")
+                return
+            else:
+                print("Quantidade insuficiente no estoque!")
+                return
+    
+    print("Item não encontrado.")
+
+# Função para remover completamente um item do estoque
+def removerItem(estoque):
+    if not estoque:
+        print("ESTOQUE VAZIO.")
+        return
+    
+    qualRemover = input("Qual item deseja remover? ").lower()
+    
+    for item in estoque:
+        if item["ITEM"].lower() == qualRemover:
+            estoque.remove(item)
+            print(f"Item '{qualRemover}' removido com sucesso!")
+            return
+    
+    print("Item não encontrado, por favor tente novamente.")
+
+# Função para calcular o valor total do estoque
+def somarEstoque(estoque):
+    if not estoque:
+        print("ESTOQUE VAZIO.")
+        return
+    
+    soma_total = sum(item["QUANTIDADE"] * item["VALOR_POR_UNIDADE"] for item in estoque)
+    print(f"O valor total do seu estoque é de R$: {soma_total:.2f}")
+
+# Carrega os dados do estoque ao iniciar o programa
 estoque = carregarEstoque()
 
+# Loop principal do programa
 while True:
-#ESSA ESTRUTURA DO WHILE FAZ COM QUE O PROGRAMA ESTEJA EM LOOPING ATÉ QUE O USUÁRIO PEÇA SAIDA.    
+    print("====================================")
+    print("                MENU                ")
+    print("====================================")
+    print("1. Visualizar o estoque")
+    print("2. Adicionar um novo item")
+    print("3. Dar saída de um item")
+    print("4. Remover um item")
+    print("5. Visualizar o valor total do estoque")
+    print("6. Sair")
     
-    print ("====================================")
-    print ("                MENU                ")
-    print ("====================================")
-    print ("DIGITE 1. PARA VISUALIZAR O ESTOQUE.")
-    print ("DIGITE 2. PARA ADICIONAR UM NOVO ITEM AO SEU ESTOQUE.")
-    print ("DIGITE 3. PARA DAR SAIDA ALGUM ITEM DO SEU ESTOQUE.")
-    print ("DIGITE 4. PARA REMOVER ALGUM ITEM DO SEU ESTOQUE.")
-    print ("DIGITE 5. PARA VISUALIZAR QUANTO VALE O SEU ESTOQUE ATUALMENTE")
-    print ("DIGITE 6. PARA SAIR.")
-    
-    opcao = input("DIGITE A OPÇÃO QUE DESEJA.")
+    opcao = input("Digite a opção desejada: ")
     
     if opcao == "1":
         mostrarEstoque(estoque)
-    elif opcao =="2":
+    elif opcao == "2":
         adicionarItem(estoque)
-    elif opcao =="3":
+    elif opcao == "3":
         saidaItem(estoque)
-    elif opcao =="4":
+    elif opcao == "4":
         removerItem(estoque)
-    elif opcao =="5":
+    elif opcao == "5":
         somarEstoque(estoque)
-    elif opcao =="6":
+    elif opcao == "6":
         salvarEstoque(estoque)
-        print("MUITO OBRIGADO POR USAR ATÉ AQUI.")
-        break      
+        print("MUITO OBRIGADO POR USAR O PROGRAMA!")
+        break
     else:
-        print("O NUMERO QUE DIGITOU NÃO CORRESPONDE A NENHUMA DAS OPÇÕES LISTADAS ACIMA, POR FAVOR ESCREVA UM NUMERO VALIDO")
+        print("Opção inválida, por favor escolha uma opção válida do menu.")
